@@ -1,5 +1,45 @@
 import kotlin.math.max
-import kotlin.math.min
+
+fun main() {
+    val testInput = readInput("5", "test")
+    check(Day05.part1(testInput) == 5)
+    check(Day05.part2(testInput) == 12)
+
+    val input = readInput("5", "prod")
+    println(Day05.part1(input))
+    println(Day05.part2(input))
+}
+
+object Day05 {
+    fun part1(input: List<String>): Int = compute(input, false)
+    fun part2(input: List<String>): Int = compute(input, true)
+
+    private fun compute(input: List<String>, diagonalsAllowed: Boolean): Int {
+        val lines = input.map { Line.fromString(it) }
+        val map = createMap(lines)
+        lines.forEach { line ->
+            line.points(diagonalsAllowed).forEach { point ->
+                map[point.y][point.x] += 1
+            }
+        }
+        return countDangerousLocations(map)
+    }
+
+    private fun createMap(lines: List<Line>): Array<IntArray> {
+        val maxX = lines.maxOf { line -> max(line.start.x, line.end.x) } + 1
+        val maxY = lines.maxOf { line -> max(line.start.y, line.end.y) } + 1
+        return Array(maxY) { _ -> IntArray(maxX) { 0 } }
+    }
+
+    private fun countDangerousLocations(map: Array<IntArray>) = map
+        .map { row -> row.filter { dangerLevel -> dangerLevel >= 2 } }
+        .flatten()
+        .count()
+}
+
+// ===================
+// Data Classes
+// ===================
 
 data class Line(val start: Point, val end: Point) {
     companion object {
@@ -11,51 +51,32 @@ data class Line(val start: Point, val end: Point) {
         }
     }
 
-    fun points(): List<Point> =
-        if (start.x == end.x) {
-            (min(start.y, end.y)..max(start.y, end.y)).map { Point(start.x, it) }
-        } else if (start.y == end.y) {
-            (min(start.x, end.x)..max(start.x, end.x)).map { Point(it, start.y) }
-        } else {
-            emptyList()
-        }
+    fun points(diagonalsAllowed: Boolean): List<Point> {
+        val pairs = if (xCoords().size == yCoords().size) {
+            if (diagonalsAllowed) xCoords().zip(yCoords())
+            else emptyList()
+        } else xCoords().product(yCoords())
+        return pairs.map { Point(it.first, it.second) }
+    }
+
+    private fun xCoords(): List<Int> =
+        Pair(start.x, end.x).range()
+
+    private fun yCoords(): List<Int> =
+        Pair(start.y, end.y).range()
 }
 
 data class Point(val x: Int, val y: Int)
 
-object Day05 {
+// ===================
+// Extension Functions
+// ===================
 
-    fun part1(input: List<String>): Int {
-        val lines = input.map { Line.fromString(it) }
-        val map = createMap(lines)
+fun <T, U> List<T>.product(other: List<U>): List<Pair<T, U>> =
+    this.flatMap { t -> other.map { u -> Pair(t, u) } }
 
-
-        lines.forEach { line ->
-            line.points().forEach { point ->
-                map[point.y][point.x] += 1
-            }
-        }
-
-        return map
-            .map { row -> row.filter { dangerLevel -> dangerLevel >= 2 } }
-            .flatten()
-            .count()
-    }
-
-    private fun createMap(lines: List<Line>): Array<IntArray> {
-        val maxX = lines.maxOf { line -> max(line.start.x, line.end.x) } + 1
-        val maxY = lines.maxOf { line -> max(line.start.y, line.end.y) } + 1
-        return Array(maxY) { _ -> IntArray(maxX) { 0 } }
-    }
-}
-
-fun main() {
-    val testInput = readInput("5", "test")
-    val testResult = Day05.part1(testInput)
-    check(testResult == 5)
-//    check(part2(testInput) == 250)
-
-    val input = readInput("5", "prod")
-    println(Day05.part1(input))
-//    println(part2(input))
+fun Pair<Int, Int>.range(): List<Int> {
+    val step = this.second.compareTo(first)
+    return if (step == 0) listOf(this.first)
+    else IntProgression.fromClosedRange(this.first, this.second, step).toList()
 }
