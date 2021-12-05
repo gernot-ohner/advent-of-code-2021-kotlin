@@ -8,42 +8,37 @@ fun main() {
     println(Day02.part2(input))
 }
 
+typealias InstructionApplication = (Coordinates, Instruction) -> Coordinates
+
 object Day02 {
-    fun part1(input: List<String>) = compute(input, "part1")
-    fun part2(input: List<String>) = compute(input, "part2")
+    fun part1(input: List<String>) = compute(input, instructionSet1)
+    fun part2(input: List<String>) = compute(input, instructionSet2)
 
-    private fun compute(input: List<String>, instructionSet: String): Int {
-        val initialCoordinates = Coordinates(0, 0, 0)
-        val updateInstructions =
-            if (instructionSet == "part1")
-                this::updateLocationPart1
-            else
-                this::updateLocationPart2
-
-        return input
+    private fun compute(input: List<String>, instructionSet: Map<String, InstructionApplication>): Int =
+        input
             .mapNotNull { Instruction.fromString(it) }
-            .fold(initialCoordinates, updateInstructions)
+            .filter { instructionSet.containsKey(it.direction) }
+            .fold(Coordinates(0, 0, 0)) { coords, instruction ->
+                instructionSet[instruction.direction]!!.invoke(coords, instruction)
+            }
             .score()
-    }
 
-    private fun updateLocationPart1(acc: Coordinates, instruction: Instruction) =
-        when (instruction.direction) {
-            "forward" -> acc.copy(horizontal = acc.horizontal + instruction.distance)
-            "down" -> acc.copy(vertical = acc.vertical + instruction.distance)
-            "up" -> acc.copy(vertical = acc.vertical - instruction.distance)
-            else -> throw IllegalArgumentException("unexpected instruction direction")
-        }
+    private val instructionSet1 = mapOf<String, InstructionApplication>(
+        "forward" to { coords, instruction -> coords.copy(horizontal = coords.horizontal + instruction.distance) },
+        "down" to { coords, instruction -> coords.copy(vertical = coords.vertical + instruction.distance) },
+        "up" to { coords, instruction -> coords.copy(vertical = coords.vertical - instruction.distance) }
+    )
 
-    private fun updateLocationPart2(acc: Coordinates, instruction: Instruction) =
-        when (instruction.direction) {
-            "forward" -> acc.copy(
-                horizontal = acc.horizontal + instruction.distance,
-                vertical = acc.vertical + acc.aim * instruction.distance
+    private val instructionSet2 = mapOf<String, InstructionApplication>(
+        "forward" to { coords, instruction ->
+            coords.copy(
+                horizontal = coords.horizontal + instruction.distance,
+                vertical = coords.vertical + coords.aim * instruction.distance
             )
-            "down" -> acc.copy(aim = acc.aim + instruction.distance)
-            "up" -> acc.copy(aim = acc.aim - instruction.distance)
-            else -> throw IllegalArgumentException("unexpected instruction direction")
-        }
+        },
+        "down" to { coords, instruction -> coords.copy(aim = coords.aim + instruction.distance) },
+        "up" to { coords, instruction -> coords.copy(aim = coords.aim - instruction.distance) }
+    )
 }
 
 // ===================
