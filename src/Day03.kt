@@ -1,3 +1,8 @@
+import Day03.part1
+import Day03.part2
+
+object Day03 {
+
 fun part1(input: List<String>): Int {
     val elementLength = input.first().length
     val chars = (0 until elementLength)
@@ -34,6 +39,8 @@ fun Char.reverseZeroAndOne(): Char =
 
 fun findMajority(chars: List<Char>): Char =
     if (chars.count { it == '1' } >= chars.size / 2.0) '1' else '0'
+
+}
 
 fun main() {
     val testInput = readInput("3", "test")
