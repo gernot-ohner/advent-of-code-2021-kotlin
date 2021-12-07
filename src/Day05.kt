@@ -67,16 +67,3 @@ data class Line(val start: Point, val end: Point) {
 }
 
 data class Point(val x: Int, val y: Int)
-
-// ===================
-// Extension Functions
-// ===================
-
-fun <T, U> List<T>.product(other: List<U>): List<Pair<T, U>> =
-    this.flatMap { t -> other.map { u -> Pair(t, u) } }
-
-fun Pair<Int, Int>.range(): List<Int> {
-    val step = this.second.compareTo(first)
-    return if (step == 0) listOf(this.first)
-    else IntProgression.fromClosedRange(this.first, this.second, step).toList()
-}

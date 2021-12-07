@@ -38,16 +38,4 @@ object Day03 {
 
     private fun findMajority(chars: List<Char>): Char =
         if (chars.count { it == '1' } >= chars.size / 2.0) '1' else '0'
-
-    // ===================
-    // Extension Functions
-    // ===================
-
-    private fun List<Char>.toBinaryInt(): Int =
-        this.joinToString("").toInt(2)
-
-    private fun Char.reverseZeroAndOne(): Char =
-        if (this == '0') '1'
-        else if (this == '1') '0'
-        else this
 }
